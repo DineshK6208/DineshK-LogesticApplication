@@ -157,3 +157,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ──────────────────────────────────────────────
 MAX_DELIVERY_ATTEMPTS = 3
 MIN_PAYOUT_THRESHOLD = 100.00
+
+# ──────────────────────────────────────────────
+# Webhook Secrets (HMAC signature verification)
+# ──────────────────────────────────────────────
+RAZORPAY_WEBHOOK_SECRET = 'your-razorpay-webhook-secret-here'
+SHIPROCKET_WEBHOOK_SECRET = 'your-shiprocket-webhook-secret-here'

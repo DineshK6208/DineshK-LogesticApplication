@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import WebhookEndpoint, WebhookLog
+from .models import WebhookEndpoint, WebhookLog, ReceivedWebhook
 
 
 class WebhookEndpointSerializer(serializers.ModelSerializer):
@@ -12,5 +12,19 @@ class WebhookEndpointSerializer(serializers.ModelSerializer):
 class WebhookLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = WebhookLog
-        fields = ['id', 'endpoint', 'event', 'payload', 'status_code', 'error_message', 'attempts', 'timestamp']
+        fields = [
+            'id', 'endpoint', 'event', 'payload',
+            'status_code', 'error_message', 'attempts', 'timestamp',
+        ]
         read_only_fields = ['id', 'timestamp']
+
+
+class ReceivedWebhookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReceivedWebhook
+        fields = [
+            'id', 'source', 'event_id', 'event_type',
+            'payload', 'signature', 'status', 'error_detail',
+            'received_at', 'processed_at',
+        ]
+        read_only_fields = ['id', 'received_at', 'processed_at']

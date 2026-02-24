@@ -9,7 +9,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'phone', 'role', 'password', 'password_confirm']
+        fields = ['id', 'email', 'phone', 'role', 'password', 'password_confirm']
         read_only_fields = ['id']
 
     def validate(self, data):
@@ -19,8 +19,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(
-            username=validated_data['username'],
             email=validated_data['email'],
+            username=validated_data['email'], # Use email as username for Django compatibility
             phone=validated_data.get('phone', ''),
             role=validated_data.get('role', 'customer'),
             password=validated_data['password'],
@@ -45,14 +45,14 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'phone', 'role', 'tenant', 'is_active', 'date_joined']
+        fields = ['id', 'email', 'phone', 'role', 'tenant', 'is_active', 'date_joined']
         read_only_fields = ['id', 'date_joined']
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'phone', 'role', 'is_active']
+        fields = ['phone', 'role', 'is_active']
 
 
 class RoleSerializer(serializers.ModelSerializer):

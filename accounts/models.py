@@ -28,8 +28,9 @@ class User(AbstractUser):
     )
     is_active = models.BooleanField(default=True)
 
+    username = models.CharField(max_length=150, unique=False, null=True, blank=True)
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = []
 
     class Meta:
         ordering = ['-date_joined']

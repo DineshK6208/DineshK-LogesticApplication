@@ -22,7 +22,7 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        if request.tenant:
+        if hasattr(request, 'tenant') and request.tenant:
             user.tenant = request.tenant
             user.save()
         refresh = RefreshToken.for_user(user)
@@ -72,7 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated, IsTenantAdmin]
     filterset_fields = ['role', 'is_active']
-    search_fields = ['email', 'username']
+    search_fields = ['email']
     ordering_fields = ['date_joined', 'email']
 
     def get_serializer_class(self):

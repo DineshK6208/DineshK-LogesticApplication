@@ -9,7 +9,6 @@ class APIGlobalTest(TestCase):
         self.client = APIClient()
         self.unique_id = uuid.uuid4().hex[:6]
         self.user_data = {
-            "username": f"user_{self.unique_id}",
             "email": f"test_{self.unique_id}@example.com",
             "password": "password123",
             "password_confirm": "password123",
@@ -19,7 +18,7 @@ class APIGlobalTest(TestCase):
     def test_full_flow(self):
         # 1. Register
         # Note: We use the full path. Let's verify URL conf.
-        response = self.client.post('/api/auth/register/', self.user_data)
+        response = self.client.post('/api/auth/register/', self.user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         
         access_token = response.data['tokens']['access']
@@ -31,7 +30,7 @@ class APIGlobalTest(TestCase):
             "slug": f"test-corp-{self.unique_id}",
             "settings": {"cur": "USD"}
         }
-        response = self.client.post('/api/tenants/', tenant_data)
+        response = self.client.post('/api/tenants/', tenant_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         tenant_id = response.data['id']
 
@@ -43,7 +42,7 @@ class APIGlobalTest(TestCase):
             "receiver_name": "Bob",
             "receiver_address": "Addr 2"
         }
-        response = self.client.post('/api/shipments/', shipment_data)
+        response = self.client.post('/api/shipments/', shipment_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         tracking_number = response.data['tracking_number']
 
