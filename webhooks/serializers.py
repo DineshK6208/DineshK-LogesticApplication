@@ -10,11 +10,14 @@ class WebhookEndpointSerializer(serializers.ModelSerializer):
 
 
 class WebhookLogSerializer(serializers.ModelSerializer):
+    endpoint_url = serializers.CharField(source='endpoint.url', read_only=True)
+
     class Meta:
         model = WebhookLog
         fields = [
-            'id', 'endpoint', 'event', 'payload',
-            'status_code', 'error_message', 'attempts', 'timestamp',
+            'id', 'endpoint', 'endpoint_url', 'event', 'payload',
+            'status_code', 'error_message', 'delivery_status',
+            'attempts', 'max_retries', 'next_retry_at', 'timestamp',
         ]
         read_only_fields = ['id', 'timestamp']
 

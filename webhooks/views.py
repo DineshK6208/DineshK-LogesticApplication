@@ -1,7 +1,7 @@
 """
 webhooks/views.py
 ─────────────────
-Two sets of views:
+Three sets of views:
 
 1. *Management views* — CRUD for WebhookEndpoint + read WebhookLog
    (existing functionality, requires authentication).
@@ -10,6 +10,8 @@ Two sets of views:
    (public POST endpoints that accept external webhook calls,
     perform HMAC signature verification, store payloads,
     and dispatch to services.py for processing).
+
+3. *Retry view* — Manually trigger retry of failed outbound webhooks.
 """
 
 import hashlib
@@ -43,7 +45,14 @@ logger = logging.getLogger(__name__)
 # ══════════════════════════════════════════════
 
 class WebhookEndpointViewSet(viewsets.ModelViewSet):
-    """GET/POST /api/webhooks/ — Webhook configuration management."""
+    """
+    CRUD /api/webhooks/ — Register / Delete / Update webhook endpoints.
+
+    POST   → Register a new webhook
+    DELETE → Remove a webhook
+    GET    → List all webhooks
+    PUT    → Update a webhook
+    """
     queryset = WebhookEndpoint.objects.all()
     serializer_class = WebhookEndpointSerializer
     permission_classes = [IsTenantAdmin]
@@ -56,8 +65,8 @@ class WebhookEndpointViewSet(viewsets.ModelViewSet):
 
 
 class WebhookLogListView(generics.ListAPIView):
-    """GET /api/webhooks/logs/ — Webhook delivery history."""
-    queryset = WebhookLog.objects.all()
+    """GET /api/webhooks/logs/ — Webhook delivery history (includes failed logs)."""
+    queryset = WebhookLog.objects.all().order_by('-timestamp')
     serializer_class = WebhookLogSerializer
     permission_classes = [IsTenantAdmin]
 
@@ -65,6 +74,12 @@ class WebhookLogListView(generics.ListAPIView):
         qs = super().get_queryset()
         if hasattr(self.request, 'tenant') and self.request.tenant:
             qs = qs.filter(tenant=self.request.tenant)
+
+        # Optional filter by delivery_status
+        delivery_status = self.request.query_params.get('status')
+        if delivery_status:
+            qs = qs.filter(delivery_status=delivery_status)
+
         return qs
 
 
@@ -73,6 +88,49 @@ class ReceivedWebhookListView(generics.ListAPIView):
     queryset = ReceivedWebhook.objects.all()
     serializer_class = ReceivedWebhookSerializer
     permission_classes = [IsTenantAdmin]
+
+
+class RetryFailedWebhooksView(APIView):
+    """
+    POST /api/webhooks/retry/ — Manually retry all failed webhooks.
+
+    Returns the count of retried webhooks.
+    """
+    permission_classes = [IsTenantAdmin]
+
+    def post(self, request, *args, **kwargs):
+        from django.utils import timezone
+        from django.db.models import F
+
+        now = timezone.now()
+        failed_logs = WebhookLog.objects.filter(
+            delivery_status=WebhookLog.DeliveryStatus.FAILED,
+            attempts__lt=F('max_retries'),
+        ).select_related('endpoint')
+
+        if hasattr(request, 'tenant') and request.tenant:
+            failed_logs = failed_logs.filter(tenant=request.tenant)
+
+        retried = 0
+        results = []
+        for log in failed_logs:
+            if not log.endpoint.is_active:
+                continue
+
+            from .trigger import _retry_delivery
+            _retry_delivery(log)
+            retried += 1
+            results.append({
+                'log_id': str(log.id),
+                'event': log.event,
+                'delivery_status': log.delivery_status,
+                'attempts': log.attempts,
+            })
+
+        return Response({
+            'retried': retried,
+            'results': results,
+        }, status=status.HTTP_200_OK)
 
 
 # ══════════════════════════════════════════════

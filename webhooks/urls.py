@@ -6,6 +6,7 @@ from .views import (
     ReceivedWebhookListView,
     PaymentWebhookView,
     ShipmentWebhookView,
+    RetryFailedWebhooksView,
 )
 
 router = DefaultRouter()
@@ -15,6 +16,7 @@ urlpatterns = [
     # ── Management endpoints (authenticated) ──────────
     path('webhooks/logs/', WebhookLogListView.as_view(), name='webhook-logs'),
     path('webhooks/received/', ReceivedWebhookListView.as_view(), name='webhook-received'),
+    path('webhooks/retry/', RetryFailedWebhooksView.as_view(), name='webhook-retry'),
 
     # ── Receiver endpoints (public, signature-protected) ──
     path('webhooks/payment/', PaymentWebhookView.as_view(), name='webhook-payment'),

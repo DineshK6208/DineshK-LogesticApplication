@@ -4,15 +4,20 @@ from .models import WebhookEndpoint, WebhookLog, ReceivedWebhook
 
 @admin.register(WebhookEndpoint)
 class WebhookEndpointAdmin(admin.ModelAdmin):
-    list_display = ('url', 'is_active', 'tenant', 'created_at')
+    list_display = ('url', 'is_active', 'events', 'tenant', 'created_at')
     list_filter = ('is_active', 'tenant')
     search_fields = ('url',)
 
 
 @admin.register(WebhookLog)
 class WebhookLogAdmin(admin.ModelAdmin):
-    list_display = ('endpoint', 'event', 'status_code', 'attempts', 'timestamp')
-    list_filter = ('event', 'status_code')
+    list_display = (
+        'event', 'endpoint', 'delivery_status', 'status_code',
+        'attempts', 'max_retries', 'next_retry_at', 'timestamp',
+    )
+    list_filter = ('delivery_status', 'event')
+    search_fields = ('event', 'error_message')
+    readonly_fields = ('payload', 'error_message', 'timestamp')
 
 
 @admin.register(ReceivedWebhook)

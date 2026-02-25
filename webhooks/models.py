@@ -3,13 +3,19 @@ from core.models import TenantAwareModel, BaseModel
 
 
 class WebhookEndpoint(TenantAwareModel):
-    """Configuration for external webhook notifications."""
+    """
+    Configuration for external webhook notifications.
+
+    Admins register a URL + secret + list of events they want
+    to subscribe to.  The trigger service sends POST requests
+    to active endpoints whenever a matching event occurs.
+    """
     url = models.URLField()
     secret = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
     events = models.JSONField(
         default=list,
-        help_text="List of events to trigger for (e.g. shipment.delivered)",
+        help_text="List of events to trigger for (e.g. shipment.status_changed, payment.updated, payout.processed)",
     )
 
     def __str__(self):
@@ -17,7 +23,18 @@ class WebhookEndpoint(TenantAwareModel):
 
 
 class WebhookLog(TenantAwareModel):
-    """Log of triggered webhooks and their delivery status."""
+    """
+    Log of every outbound webhook delivery attempt.
+
+    Stores success AND failed deliveries for debugging,
+    auditing, and retry support.
+    """
+
+    class DeliveryStatus(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        SUCCESS = 'success', 'Success'
+        FAILED = 'failed', 'Failed'
+
     endpoint = models.ForeignKey(
         WebhookEndpoint, on_delete=models.CASCADE, related_name='logs',
     )
@@ -25,11 +42,32 @@ class WebhookLog(TenantAwareModel):
     payload = models.JSONField()
     status_code = models.IntegerField(null=True, blank=True)
     error_message = models.TextField(blank=True)
-    attempts = models.IntegerField(default=1)
+    delivery_status = models.CharField(
+        max_length=20,
+        choices=DeliveryStatus.choices,
+        default=DeliveryStatus.PENDING,
+    )
+    attempts = models.IntegerField(default=0)
+    max_retries = models.IntegerField(
+        default=3,
+        help_text="Maximum number of delivery attempts.",
+    )
+    next_retry_at = models.DateTimeField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta(TenantAwareModel.Meta):
+        verbose_name = 'Webhook Log'
+        verbose_name_plural = 'Webhook Logs'
+
     def __str__(self):
-        return f"{self.event} -> {self.endpoint.url} ({self.status_code})"
+        return f"{self.event} -> {self.endpoint.url} ({self.delivery_status})"
+
+    @property
+    def can_retry(self) -> bool:
+        return (
+            self.delivery_status == self.DeliveryStatus.FAILED
+            and self.attempts < self.max_retries
+        )
 
 
 # ──────────────────────────────────────────────────────────────
