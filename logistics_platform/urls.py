@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/', include('webhooks.urls')),
     path('api/', include('auditlogs.urls')),
     path('api/', include('reports.urls')),
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 if settings.DEBUG:
