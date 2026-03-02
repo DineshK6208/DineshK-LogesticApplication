@@ -19,3 +19,5 @@ class KYCDocumentAdmin(admin.ModelAdmin):
 class DriverLocationAdmin(admin.ModelAdmin):
     list_display = ('driver', 'latitude', 'longitude', 'timestamp')
     list_filter = ('driver',)
+    
+@admin path    
