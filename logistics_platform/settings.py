@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     'webhooks',
     'auditlogs',
     'reports',
+    'corsheaders',
 ]
 
 # ──────────────────────────────────────────────
 # Middleware
 # ──────────────────────────────────────────────
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -163,3 +165,18 @@ MIN_PAYOUT_THRESHOLD = 100.00
 # ──────────────────────────────────────────────
 RAZORPAY_WEBHOOK_SECRET = 'your-razorpay-webhook-secret-here'
 SHIPROCKET_WEBHOOK_SECRET = 'your-shiprocket-webhook-secret-here'
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-tenant-id',
+]

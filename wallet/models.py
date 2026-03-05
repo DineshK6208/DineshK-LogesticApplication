@@ -8,7 +8,10 @@ class Wallet(BaseModel):
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     def __str__(self):
-        return f"Wallet: {self.user.email} (Bal: {self.balance})"
+        try:
+            return f"Wallet: {self.user.email} (Bal: {self.balance})"
+        except AttributeError:
+            return f"Wallet: {self.id} (Bal: {self.balance})"
 
 
 class WalletTransaction(BaseModel):
@@ -26,4 +29,7 @@ class WalletTransaction(BaseModel):
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.transaction_type}: {self.amount} for {self.wallet.user.email}"
+        try:
+            return f"{self.transaction_type}: {self.amount} for {self.wallet.user.email}"
+        except AttributeError:
+            return f"{self.transaction_type}: {self.amount} (ID: {self.id})"

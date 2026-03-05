@@ -13,4 +13,7 @@ class DeliveryAttempt(TenantAwareModel):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Attempt {self.attempt_number} for {self.shipment.tracking_number}"
+        try:
+            return f"Attempt {self.attempt_number} for {self.shipment.tracking_number}"
+        except AttributeError:
+            return f"Attempt {self.attempt_number} (ID: {self.id})"

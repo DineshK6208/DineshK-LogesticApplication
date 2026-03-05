@@ -28,7 +28,10 @@ class Driver(TenantAwareModel):
     )
 
     def __str__(self):
-        return f"Driver: {self.user.email}"
+        try:
+            return f"Driver: {self.user.email}"
+        except AttributeError:
+            return f"Driver: {self.id}"
 
 
 class KYCDocument(TenantAwareModel):
@@ -39,7 +42,10 @@ class KYCDocument(TenantAwareModel):
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.document_type} for {self.driver.user.email}"
+        try:
+            return f"{self.document_type} for {self.driver.user.email}"
+        except AttributeError:
+            return f"{self.document_type} (Driver: {self.driver_id})"
 
 
 class DriverLocation(TenantAwareModel):

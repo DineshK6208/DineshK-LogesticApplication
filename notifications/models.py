@@ -11,4 +11,7 @@ class Notification(BaseModel):
     notification_type = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
-        return f"Notification for {self.user.email}: {self.title}"
+        try:
+            return f"Notification for {self.user.email}: {self.title}"
+        except AttributeError:
+            return f"Notification (ID: {self.id}): {self.title}"

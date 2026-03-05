@@ -10,7 +10,10 @@ class Earning(TenantAwareModel):
     calculated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.amount} for {self.driver.user.email} (TRK: {self.shipment.tracking_number})"
+        try:
+            return f"{self.amount} for {self.driver.user.email} (TRK: {self.shipment.tracking_number})"
+        except AttributeError:
+            return f"{self.amount} for unknown driver (ID: {self.id})"
 
 
 class Payout(TenantAwareModel):
@@ -27,4 +30,7 @@ class Payout(TenantAwareModel):
     processed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Payout {self.amount} to {self.driver.user.email} - {self.status}"
+        try:
+            return f"Payout {self.amount} to {self.driver.user.email} - {self.status}"
+        except AttributeError:
+            return f"Payout {self.amount} (ID: {self.id}) - {self.status}"
